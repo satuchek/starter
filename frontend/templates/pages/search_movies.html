@@ -1,0 +1,17 @@
+{% extends 'layouts/main.html' %}
+{% block title %}Spotlight Casting Agency | Movie Search{% endblock %}
+{% block content %}
+<h3>Number of search results for "{{ search_term }}": {{ results.count }}</h3>
+<ul class="items">
+	{% for movie in results.movies %}
+	<li>
+		<a href="/movies/{{ movie.id }}">
+			<i class="fas fa-ticket-alt"></i>
+			<div class="item">
+				<h5>{{ movie.title }}</h5>
+			</div>
+		</a>
+	</li>
+	{% endfor %}
+</ul>
+{% endblock %}

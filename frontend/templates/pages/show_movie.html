@@ -1,0 +1,73 @@
+{% extends 'layouts/main.html' %}
+{% block title %}Movie Search{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="col-sm-6">
+		<h1 class="monospace">
+			{{ movie.title }}
+		</h1>
+		<p class="subtitle">
+			ID: {{ movie.id }}
+		</p>
+		<p>
+			<i class="fas fa-calendar"></i>{{ movie.release_date }}
+		</p>
+		<p>
+			<i class="fas fa-link"></i> {% if movie.imdb_link %}<a href="{{ movie.imdb_link }}" target="_blank">{{ movie.imdb_link }}</a>{% else %}No IMDB Link{% endif %}
+		</p>
+
+		{% if movie.seeking_talent %}
+		<div class="seeking">
+			<p class="lead">Currently seeking talent</p>
+			<div class="description">
+				<i class="fas fa-quote-left"></i> {{ movie.seeking_description }} <i class="fas fa-quote-right"></i>
+			</div>
+		</div>
+		{% else %}	
+		<p class="not-seeking">
+			<i class="fas fa-moon"></i> Not currently seeking talent
+		</p>
+		{% endif %}
+	</div>
+	<div class="col-sm-6">
+		<img src="{{ movie.image_link }}" alt="Movie Image" />
+	</div>
+</div>
+<section>
+	<h2 class="monospace">Cast</h2>
+	<div class="row">
+		{% for actor in actors %}
+		<div class="col-sm-4">
+			<div class="tile tile-show">
+				<img src="{{ actor.image_link }}" alt="Actor Image" />
+				<h5><a href="/actors/{{ actor.id }}">{{ actor.name }}</a></h5>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</section>
+
+<a href="/movies/{{ movie.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
+<button id="delete_movie" data-id="{{ movie.id }}" class="btn btn-primary btn-lg">Delete</button>
+
+<script>
+	function registerDeleteBtn(){
+		console.log("In register");
+		const deleteBtn = document.getElementById("delete_venue");
+		deleteBtn.onclick=function(e){
+			e.preventDefault();
+			const venue_id = e.target.dataset['id'];
+			fetch('/venues/' + venue_id, {
+				method: 'DELETE'
+			}).then(function(response){
+				window.location.replace("/");
+			});
+		}
+	}
+
+	registerDeleteBtn();
+
+</script>
+
+{% endblock %}
+

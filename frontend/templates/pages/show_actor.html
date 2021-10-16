@@ -1,0 +1,60 @@
+{% extends 'layouts/main.html' %}
+{% block title %}{{ actor.name }} | Actor{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="col-sm-6">
+		<h1 class="monospace">
+			{{ actor.name }}
+		</h1>
+		<p class="subtitle">
+			ID: {{ actor.id }}
+		</p>
+
+		<p>
+			<i class="fas fa-birthday-cake"></i> {{ actor.age }}
+		</p>
+		<p>
+			<i class="fas {% if actor.gender == 'Male' %}fa-mars{% elif actor.gender == 'Female' %} fa-venus {% else %}fa-neuter {% endif %}"></i> {{ actor.gender }}
+		</p>
+
+        <p>
+			<i class="fas fa-link"></i> {% if actor.imdb_link %}<a href="{{ actor.imdb_link }}" target="_blank">{{ actor.imdb_link }}</a>{% else %}No IMDB{% endif %}
+		</p>
+
+		{% if actor.seeking_roles %}
+		<div class="seeking">
+			<p class="lead">Currently seeking roles</p>
+			<div class="description">
+				<i class="fas fa-quote-left"></i> {{ actor.seeking_description }} <i class="fas fa-quote-right"></i>
+			</div>
+		</div>
+		{% else %}	
+		<p class="not-seeking">
+			<i class="fas fa-moon"></i> Not currently seeking roles
+		</p>
+		{% endif %}
+	</div>
+	<div class="col-sm-6">
+		<img src="{{ actor.image_link }}" alt="Actor image" />
+	</div>
+</div>
+<section>
+	<h2 class="monospace">{{ count }} {% if count == 1 %}Movie{% else %}Movies{% endif %}</h2>
+	<div class="row">
+		{%for movie in movies %}
+		<div class="col-sm-4">
+			<div class="tile tile-show">
+				<img src="{{ movie.image_link }}" alt="Movie Image" />
+				<h5><a href="/movies/{{ movie.id }}">{{ movie.title }}</a></h5>
+				<h6>{{ movie.release_date }}</h6>
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+</section>
+
+
+<a href="/actors/{{ actor.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
+
+{% endblock %}
+
