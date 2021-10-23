@@ -32,7 +32,11 @@
 <script src="/static/js/libs/moment.min.js"></script>
 <script type="text/javascript" src="/static/js/script.js" defer></script>
 <!--[if lt IE 9]><script src="/static/js/libs/respond-1.4.2.min.js"></script><![endif]-->
+
+<!-- auth -->
+
 <!-- /scripts -->
+
 </head>
 <body>
 
@@ -81,6 +85,11 @@
             <li {% if request.endpoint == 'movies' %} class="active" {% endif %}><a href="{{ url_for('movies') }}">Movies</a></li>
             <li {% if request.endpoint == 'actors' %} class="active" {% endif %}><a href="{{ url_for('actors') }}">Actors</a></li>
           </ul>
+          <ul class="nav navbar-nav navbar-right" >
+            {% if not token %}<a href="{{ login }}"><button class="btn btn-primary" type="button">Login</button></a>{% endif %}
+            {% if token %}<a href="{{ logout }}"><button class="btn btn-default" type="button">Logout</button></a>{% endif %}
+          </ul>
+
         </div><!--/.nav-collapse -->
       </div>
     </div>

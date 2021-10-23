@@ -1,7 +1,7 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort, jsonify
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, abort, jsonify, make_response, session
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 import logging
@@ -9,7 +9,7 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 import requests
-from config import REQUEST_ADDRESS
+from config import REQUEST_ADDRESS, LOGIN_LINK, LOGOUT_LINK
 
 
 
@@ -28,9 +28,26 @@ def format_datetime(value, format='medium'):
 
 app.jinja_env.filters['datetime'] = format_datetime
 
+@app.route('/login')
+@app.route('/login/<token>')
+def login(token=None):
+    if token is None:
+        return render_template('pages/callback_token.html')
+    else:
+        # set token in session storage
+        session['token'] = token
+        return redirect(url_for('index'))
+
+@app.route('/logout')
+def logout():
+    session['token'] = ''
+    return redirect(url_for('index'))
+    
+
 @app.route('/')
 def index():
-  return render_template('pages/home.html')
+    return make_response(render_template('pages/home.html', token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK))
+
 
 
 

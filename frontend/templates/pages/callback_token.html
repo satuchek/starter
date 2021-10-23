@@ -1,0 +1,6 @@
+<html>
+    <script>
+        var parsedHash = new URLSearchParams(window.location.hash.substr(1));
+        location.href = `/login/${parsedHash.get('access_token')}`
+    </script>
+</html>

@@ -6,6 +6,7 @@ import json
 from sqlalchemy.sql.expression import null
 
 from models import db_drop_and_create_all, setup_db, Actor, Movie, CastList, db
+from .auth.auth import AuthError, requires_auth
 
 def create_app(test_config=None):
   # create and configure the app
@@ -25,6 +26,7 @@ def create_app(test_config=None):
     })
 
   @app.route('/actors', methods=['POST'])
+  @requires_auth('post:actors')
   def create_actor():
     request_data = request.get_json()
     if request_data is None:
@@ -44,6 +46,7 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
+  @requires_auth('patch:actors')
   def update_actor(actor_id):
     request_data = request.get_json()
     actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
@@ -86,6 +89,7 @@ def create_app(test_config=None):
     return jsonify({'success': True, 'actor': actor})
 
   @app.route('/actors/<int:actor_id>', methods=['DELETE'])
+  @requires_auth('delete:actors')
   def delete_actor(actor_id):
     actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
     if actor is None:
@@ -129,6 +133,7 @@ def create_app(test_config=None):
     return jsonify({'success': True, 'movie': selection.format()})
 
   @app.route('/movies/<int:movie_id>', methods=['DELETE'])
+  @requires_auth('delete:movies')
   def delete_movie(movie_id):
     movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
     if movie is None:
@@ -138,6 +143,7 @@ def create_app(test_config=None):
     return jsonify({'success': True, 'id': deleted_id})
 
   @app.route('/movies', methods=['POST'])
+  @requires_auth('post:movies')
   def create_movie():
     request_data = request.get_json()
     if request_data is None:
@@ -169,6 +175,7 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/movies/<int:movie_id>', methods=['PATCH'])
+  @requires_auth('patch:movies')
   def update_movie(movie_id):
     request_data = request.get_json()
     movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
@@ -257,6 +264,7 @@ def create_app(test_config=None):
     })
 
   @app.route('/castlist', methods=['POST'])
+  @requires_auth('post:castlists')
   def create_castlist():
     request_data = request.get_json()
     if request_data is None:
@@ -275,6 +283,7 @@ def create_app(test_config=None):
       abort(422)
 
   @app.route('/castlist', methods=['DELETE'])
+  @requires_auth('delete:castlists')
   def delete_castlist():
     request_data = request.get_json()
     try:
@@ -335,6 +344,14 @@ def create_app(test_config=None):
       "error": 500,
       "message": "internal server error"
       }), 500
+
+  @app.errorhandler(AuthError)
+  def auth_error(error):
+    return jsonify({
+      'success': False,
+      'error': error.status_code,
+      'message': error.error.get('description')
+    }), error.status_code
 
   return app
 
