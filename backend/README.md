@@ -187,8 +187,157 @@ The API will return four error types when requests fail:
   "success": true
 }
 ```
+#### GET /movies/<int:movie_id>
+- General:
+    - Fetches details for a specific movie and a success code.
+    - Request Args: movie_id - integer
+- `curl http://127.0.0.1:5000/movies/1`
+```
+{
+  "actor": {
+      "id": 1,
+      "title": "Deadpool",
+      "image_link": "https://m.media-amazon.com/images/M/MV5BYzE5MjY1ZDgtMTkyNC00MTMyLThhMjAtZGI5OTE1NzFlZGJjXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_FMjpg_UX1000_.jpg",
+      "imdb_link": "https://www.imdb.com/title/tt1431045/?ref_=fn_al_tt_1",
+      "release_date": "2014-02-16",
+      "seeking_talent": False,
+      "seeking_description": "Not currently seeking talent."
+  }
+  "success": true
+}
+```
 
+### POST /movies/search
+- General:
+    - Sends a post request in order to get movies matching a specific search term. It returns an array of movies as well as a count of matching movies.
+    - Request Args: None
+- Sample:
+    - `curl http://127.0.0.1:5000/movies/search -X POST -H "Content-Type: application/json" -d '{'search_term': 'dead'}'`
+```
+{
+  "movies": [
+    {
+      "id": 1,
+      "title": "Deadpool",
+      "image_link": "https://m.media-amazon.com/images/M/MV5BYzE5MjY1ZDgtMTkyNC00MTMyLThhMjAtZGI5OTE1NzFlZGJjXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_FMjpg_UX1000_.jpg",
+      "imdb_link": "https://www.imdb.com/title/tt1431045/?ref_=fn_al_tt_1",
+      "release_date": "2014-02-16",
+      "seeking_talent": False,
+      "seeking_description": "Not currently seeking talent."
+    }
+  ],
+  "count": 1,
+  "success": true
+}
+```
 
+### POST /movies
+- General:
+    - Sends a post request in order to add a new movie to the database. If successful it will return the ID of the newly added movie.
+    - Request Args: None
+    - Authorization: requires token with the permission `post:movies`
+- Sample:
+    - `curl http://127.0.0.1:5000/movies -X POST -H "Content-Type: application/json" -H "Authorization: Bearer [token]" -d '{'title': 'Pitch Perfect', 'image_link': 'url-for-image', 'imdb_link': 'url-for-imdb', 'release_date': '2012-10-05', 'seeking_roles': False, 'seeking_description': 'optional string description'}'`
+```
+{
+  "id": 2,
+  "success": true
+}
+```
 
+### PATCH /movies/<int:movie_id>
+- General:
+    - Sends a patch request in order to update a movie with an associated ID in the database. All parameters are optional. If successful will return success and the short version of the movie.
+    - Request Args: movie_id - integer
+    - Authorization: requires token with the permission `patch:movies`
+- Sample:
+    - `curl http://127.0.0.1:5000/movies -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer [token]" -d '{'title': 'Pitch Perfect', 'image_link': 'url-for-image', 'imdb_link': 'url-for-imdb', 'release_date': '2012-10-06', 'seeking_talent': False, 'seeking_description': 'optional string description'}'`
+```
+{
+  "actor": {
+    'title': 'Pitch Perfect',
+    'id': 2
+  },
+  "success": true
+}
+```
+
+### DELETE /movies/<int:movie_id>
+- General:
+    - Sends a delete request in order to delete a movie with an associated ID in the database. If successful will return success and the ID of the deleted movie.
+    - Request Args: movie_id - integer
+    - Authorization: requires token with the permission `delete:movies`
+- Sample:
+    - `curl http://127.0.0.1:5000/movies -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer [token]"`
+```
+{
+  "id": 2,
+  "success": true
+}
+```
+#### GET /castlist/actors/<int:actor_id>
+- General:
+    - Fetches all of the movies a given actor has been cast in and a count of how many movies that is. Each movie object contains just an id, title, and image link.
+    - Request Args: actor_id - integer
+- Sample
+    - `curl http://127.0.0.1:5000/castlist/actors/1`
+```
+{
+  "movies": [
+    {
+      "id": 1,
+      "title": "Deadpool",
+      "image_link": "https://m.media-amazon.com/images/M/MV5BYzE5MjY1ZDgtMTkyNC00MTMyLThhMjAtZGI5OTE1NzFlZGJjXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_FMjpg_UX1000_.jpg"
+    }
+  ],
+  "count": 1,
+  "success": true
+}
+```
+#### GET /castlist/movies/<int:movie_id>
+- General:
+    - Fetches all of the actors a given movie has on its castlist and a count of how many actors that is. Each actor object contains just an id, name, and image link.
+    - Request Args: movie_id - integer
+- Sample
+    - `curl http://127.0.0.1:5000/castlist/movies/1`
+```
+{
+  "actors": [
+    {
+      "id": 1,
+      "name": "Ryan Reynolds",
+      "image_link": "https://m.media-amazon.com/images/M/MV5BOTI3ODk1MTMyNV5BMl5BanBnXkFtZTcwNDEyNTE2Mg@@._V1_UY317_CR6,0,214,317_AL_.jpg"
+    }
+  ],
+  "count": 1,
+  "success": true
+}
+```
+
+### POST /castlist
+- General:
+    - Sends a post request in order to cast an actor in a movie given a movie ID and actor ID. 
+    - Request Args: None
+    - Authorization: requires token with the permission `post:castlists`
+- Sample:
+    - `curl http://127.0.0.1:5000/castlist -X POST -H "Content-Type: application/json" -H "Authorization: Bearer [token]" -d '{'actor_id': 1, 'movie_id': 1}'`
+```
+{
+  "success": true
+}
+```
+### DELETE /castlist
+- General:
+    - Sends a delete request in order to "uncast" an actor from a movie given an movie ID and actor ID. Returns a success value and the old castlist id.
+    - Request Args: None
+    - Authorization: requires token with the permission `delete:castlists`
+- Sample:
+    - `curl http://127.0.0.1:5000/castlist -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer [token]-d '{'actor_id': 1, 'movie_id': 1}'"`
+```
+{
+  "id": 1,
+  "success": true
+}
+```
 
 
