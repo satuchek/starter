@@ -8,6 +8,9 @@ from flaskr import create_app
 from models import setup_db, Actor, Movie, CastList, db_drop_and_create_all
 
 
+from config import PERMISSIONLESS_TOKEN, CASTING_DIRECTOR_TOKEN, EXECUTIVE_PRODUCER_TOKEN
+
+
 
 class SpotlightTests(unittest.TestCase):
     """ This class represents the Spotlight API Tests """
@@ -90,7 +93,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_create_actor_success(self):
         print("""Test POST /actors add success """)
-        res = self.client().post('/actors', json=self.new_actor)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().post('/actors', json=self.new_actor, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -98,9 +102,21 @@ class SpotlightTests(unittest.TestCase):
         self.assertTrue(data['id'])
         self.__class__.new_actor_id = data['id']
     
+    def test_403_create_actor(self):
+        print("""Test POST /actors 403 failure """)
+        head = {'Authorization': 'Bearer ' + PERMISSIONLESS_TOKEN}
+        res = self.client().post('/actors', json=None, headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+        
+
+    
     def test_400_create_actor(self):
         print("""Test POST /actors 400 failure """)
-        res = self.client().post('/actors', json=None)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().post('/actors', json=None, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
@@ -109,16 +125,28 @@ class SpotlightTests(unittest.TestCase):
     
     def test_422_create_actor(self):
         print("""Test POST /actors 422 failure """)
-        res = self.client().post('/actors', json=self.new_movie)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().post('/actors', json=self.new_movie, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'unprocessable')
     
+    def test_403_patch_actor(self):
+        print("""Test PATCH /actors 403 failure """)
+        head = {'Authorization': 'Bearer ' + PERMISSIONLESS_TOKEN}
+        res = self.client().patch('/actors/1245', json=self.actor_update, headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+
+    
     def test_405_patch_actor(self):
         print("""Test PATCH /actors 405 failure """)
-        res = self.client().patch('/actors', json=self.new_actor)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().patch('/actors', json=self.new_actor, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 405)
@@ -127,7 +155,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_404_patch_actor(self):
         print("""Test PATCH /actors/<id> 404 failure """)
-        res = self.client().patch('/actors/1245', json=self.actor_update)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().patch('/actors/1245', json=self.actor_update, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -136,7 +165,8 @@ class SpotlightTests(unittest.TestCase):
 
     def test_422_patch_actor(self):
         print("""Test PATCH /actors/<id> 422 failure """)
-        res = self.client().patch('/actors/' + str(self.__class__.new_actor_id), json=None)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().patch('/actors/' + str(self.__class__.new_actor_id), json=None, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -145,7 +175,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_patch_actor_success(self):
         print("""Test PATCH /actors/<id> success """)
-        res = self.client().patch('/actors/' + str(self.__class__.new_actor_id), json=self.actor_update)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().patch('/actors/' + str(self.__class__.new_actor_id), json=self.actor_update, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -170,9 +201,20 @@ class SpotlightTests(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['actor'])
     
+    def test_403_delete_actor(self):
+        print("""Test DELETE /actors 403 failure """)
+        head = {'Authorization': 'Bearer ' + PERMISSIONLESS_TOKEN}
+        res = self.client().delete('/actors/1245', headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+
+    
     def test_404_delete_actor(self):
         print("""Test DELETE /actors/<id> 404 failure """)
-        res = self.client().delete('/actors/1245')
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().delete('/actors/1245', headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -181,7 +223,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_delete_actor_success(self):
         print("""Test DELETE /actors/<id> success """)
-        res = self.client().delete('/actors/' + str(self.__class__.new_actor_id))
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().delete('/actors/' + str(self.__class__.new_actor_id), headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -237,7 +280,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_create_movie_success(self):
         print("""Test POST /movies add success """)
-        res = self.client().post('/movies', json=self.new_movie)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().post('/movies', json=self.new_movie, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -245,9 +289,20 @@ class SpotlightTests(unittest.TestCase):
         self.assertTrue(data['id'])
         self.__class__.new_movie_id = data['id']
     
+    def test_403_create_movie(self):
+        print("""Test POST /movies 403 failure """)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().post('/movies', json=self.new_movie, headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+   
+    
     def test_400_create_movie(self):
         print("""Test POST /movies 400 failure """)
-        res = self.client().post('/movies', json=None)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().post('/movies', json=None, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
@@ -256,16 +311,28 @@ class SpotlightTests(unittest.TestCase):
     
     def test_422_create_movie(self):
         print("""Test POST /movies 422 failure """)
-        res = self.client().post('/movies', json=self.new_actor)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().post('/movies', json=self.new_actor, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'unprocessable')
+    
+    def test_403_patch_movie(self):
+        print("""Test PATCH /movies 403 failure """)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().patch('/movies/123', json=self.movie_update, headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+        
 
     def test_405_patch_movie(self):
         print("""Test PATCH /movies 405 failure """)
-        res = self.client().patch('/movies', json=self.new_movie)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().patch('/movies', json=self.new_movie, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 405)
@@ -274,7 +341,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_404_patch_movie(self):
         print("""Test PATCH /movies/<id> 404 failure """)
-        res = self.client().patch('/movies/1245', json=self.movie_update)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().patch('/movies/1245', json=self.movie_update, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -283,7 +351,8 @@ class SpotlightTests(unittest.TestCase):
 
     def test_422_patch_movie(self):
         print("""Test PATCH /movies/<id> 422 failure """)
-        res = self.client().patch('/movies/' + str(self.__class__.new_movie_id), json=None)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().patch('/movies/' + str(self.__class__.new_movie_id), json=None, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
@@ -292,7 +361,8 @@ class SpotlightTests(unittest.TestCase):
 
     def test_patch_movie_success(self):
         print("""Test PATCH /movies/<id> success """)
-        res = self.client().patch('/movies/' + str(self.__class__.new_movie_id), json=self.movie_update)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().patch('/movies/' + str(self.__class__.new_movie_id), json=self.movie_update, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -317,9 +387,20 @@ class SpotlightTests(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['movie'])
 
+    def test_403_delete_movie(self):
+        print("""Test DELETE /movies/<id> 403 failure """)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().delete('/movies/1245', headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+      
+
     def test_404_delete_movie(self):
         print("""Test DELETE /movies/<id> 404 failure """)
-        res = self.client().delete('/movies/1245')
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().delete('/movies/1245', headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -328,7 +409,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_delete_movie_success(self):
         print("""Test DELETE /movies/<id> success """)
-        res = self.client().delete('/movies/' + str(self.__class__.new_movie_id))
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().delete('/movies/' + str(self.__class__.new_movie_id), headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -406,17 +488,31 @@ class SpotlightTests(unittest.TestCase):
 
     def test_create_castlist_success(self):
         print("""Test POST /castlist add success """)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
         res = self.client().post('/castlist', json={
          'movie_id': self.__class__.new_movie_id, 
-         'actor_id': self.__class__.new_actor_id})
+         'actor_id': self.__class__.new_actor_id}, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
     
+    def test_403_create_castlist(self):
+        print("""Test POST /castlist 403 """)
+        head = {'Authorization': 'Bearer ' + PERMISSIONLESS_TOKEN}
+        res = self.client().post('/castlist', json={
+         'movie_id': self.__class__.new_movie_id, 
+         'actor_id': self.__class__.new_actor_id}, headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+    
+    
     def test_400_create_castlist(self):
         print("""Test POST /castlist 400 failure """)
-        res = self.client().post('/castlist', json=None)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().post('/castlist', json=None, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
@@ -425,18 +521,30 @@ class SpotlightTests(unittest.TestCase):
     
     def test_422_create_castlist(self):
         print("""Test POST /castlist 422 failure """)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
         res = self.client().post('/castlist', json={
          'movie_id': self.__class__.new_movie_id, 
-         'actor_id': self.__class__.new_actor_id})
+         'actor_id': self.__class__.new_actor_id}, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'unprocessable')
     
+    def test_403_delete_castlist(self):
+        print("""Test DELETE /castlist 403 failure """)
+        head = {'Authorization': 'Bearer ' + CASTING_DIRECTOR_TOKEN}
+        res = self.client().delete('/castlist', json={'movie_id': 1245, 'actor_id': 1245}, headers=head)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 403)
+        self.assertEqual(data['success'], False)
+
+    
     def test_400_delete_castlist(self):       
         print(""" Test DELETE /castlist 400 failure """)
-        res = self.client().delete('/castlist', json=None)
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().delete('/castlist', json=None, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 400)
@@ -445,7 +553,8 @@ class SpotlightTests(unittest.TestCase):
     
     def test_404_delete_castlist(self):       
         print(""" Test DELETE /castlist 404 failure """)
-        res = self.client().delete('/castlist', json={'movie_id': 1245, 'actor_id': 1245})
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().delete('/castlist', json={'movie_id': 1245, 'actor_id': 1245}, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
@@ -454,7 +563,9 @@ class SpotlightTests(unittest.TestCase):
     
     def test_delete_castlist_success(self):       
         print(""" Test DELETE /castlist success """)
-        res = self.client().delete('/castlist', json={'movie_id': self.__class__.new_movie_id, 'actor_id': self.__class__.new_actor_id})
+        head = {'Authorization': 'Bearer ' + EXECUTIVE_PRODUCER_TOKEN}
+        res = self.client().delete('/castlist', json={'movie_id': self.__class__.new_movie_id, \
+            'actor_id': self.__class__.new_actor_id}, headers=head)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -463,6 +574,16 @@ class SpotlightTests(unittest.TestCase):
 
 def suite():
     suite = unittest.TestSuite()
+    """ AUTH ERRORS """
+    suite.addTest(SpotlightTests('test_403_create_actor'))
+    suite.addTest(SpotlightTests('test_403_patch_actor'))
+    suite.addTest(SpotlightTests('test_403_delete_actor'))
+    suite.addTest(SpotlightTests('test_403_create_movie'))
+    suite.addTest(SpotlightTests('test_403_patch_movie'))
+    suite.addTest(SpotlightTests('test_403_delete_movie'))
+    suite.addTest(SpotlightTests('test_403_create_castlist'))
+    suite.addTest(SpotlightTests('test_403_delete_castlist'))
+
     """ Actor Section """
     suite.addTest(SpotlightTests('test_get_success_actors'))
     suite.addTest(SpotlightTests('test_404_get_actor'))

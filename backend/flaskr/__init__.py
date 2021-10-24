@@ -27,7 +27,7 @@ def create_app(test_config=None):
 
   @app.route('/actors', methods=['POST'])
   @requires_auth('post:actors')
-  def create_actor():
+  def create_actor(payload):
     request_data = request.get_json()
     if request_data is None:
       abort(400)
@@ -47,7 +47,7 @@ def create_app(test_config=None):
 
   @app.route('/actors/<int:actor_id>', methods=['PATCH'])
   @requires_auth('patch:actors')
-  def update_actor(actor_id):
+  def update_actor(payload, actor_id):
     request_data = request.get_json()
     actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
     if actor is None:
@@ -90,7 +90,7 @@ def create_app(test_config=None):
 
   @app.route('/actors/<int:actor_id>', methods=['DELETE'])
   @requires_auth('delete:actors')
-  def delete_actor(actor_id):
+  def delete_actor(payload, actor_id):
     actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
     if actor is None:
       abort(404)
@@ -134,7 +134,7 @@ def create_app(test_config=None):
 
   @app.route('/movies/<int:movie_id>', methods=['DELETE'])
   @requires_auth('delete:movies')
-  def delete_movie(movie_id):
+  def delete_movie(payload, movie_id):
     movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
     if movie is None:
       abort(404)
@@ -144,7 +144,7 @@ def create_app(test_config=None):
 
   @app.route('/movies', methods=['POST'])
   @requires_auth('post:movies')
-  def create_movie():
+  def create_movie(payload):
     request_data = request.get_json()
     if request_data is None:
       abort(400)
@@ -176,7 +176,7 @@ def create_app(test_config=None):
 
   @app.route('/movies/<int:movie_id>', methods=['PATCH'])
   @requires_auth('patch:movies')
-  def update_movie(movie_id):
+  def update_movie(payload, movie_id):
     request_data = request.get_json()
     movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
     if movie is None:
@@ -265,7 +265,7 @@ def create_app(test_config=None):
 
   @app.route('/castlist', methods=['POST'])
   @requires_auth('post:castlists')
-  def create_castlist():
+  def create_castlist(payload):
     request_data = request.get_json()
     if request_data is None:
       abort(400)
@@ -284,7 +284,7 @@ def create_app(test_config=None):
 
   @app.route('/castlist', methods=['DELETE'])
   @requires_auth('delete:castlists')
-  def delete_castlist():
+  def delete_castlist(payload):
     request_data = request.get_json()
     try:
       new_actor_id = request_data.get('actor_id')

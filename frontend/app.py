@@ -56,12 +56,12 @@ def actors():
     r = requests.get(REQUEST_ADDRESS + "/actors")
     data = r.json()
 
-    return render_template('pages/actors.html', actors=data['actors'])
+    return render_template('pages/actors.html', actors=data['actors'], token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/actors/create', methods=['GET'])
 def create_actor_form():
     form = ActorForm()
-    return render_template('forms/new_actor.html', form=form)
+    return render_template('forms/new_actor.html', form=form, token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/actors/create', methods=['POST'])
 def create_actor_form_submission():
@@ -80,7 +80,8 @@ def create_actor_form_submission():
             "image_link": actor_image_link, "imdb_link": actor_imdb_link,
             "seeking_roles": actor_seeking_roles, "seeking_description": actor_seeking_description
         }
-        r = requests.post(REQUEST_ADDRESS + "/actors", json=actor)
+        head = {'Authorization': 'Bearer ' + session['token']}
+        r = requests.post(REQUEST_ADDRESS + "/actors", json=actor, headers=head)
         data = r.json()
         if not data['success']:
             error = True
@@ -88,10 +89,10 @@ def create_actor_form_submission():
         error = True
         flash('An error occurred. Actor could not be listed.')
     if error:
-        return render_template('forms/new_actor.html', form=form)
+        return render_template('forms/new_actor.html', form=form, token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
     else:
         flash('Actor was successfully listed!')
-        return render_template('pages/home.html')
+        return render_template('pages/home.html', token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/actors/<int:actor_id>')
 def show_actor(actor_id):
@@ -100,7 +101,8 @@ def show_actor(actor_id):
     r2 = requests.get(REQUEST_ADDRESS + "/castlist/actors/" + str(actor_id))
     movie = r2.json()
 
-    return render_template('pages/show_actor.html', actor=data['actor'], count=movie['count'], movies=movie['movies'])
+    return render_template('pages/show_actor.html', actor=data['actor'], count=movie['count'], movies=movie['movies'], \
+        token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/actors/search', methods=['POST'])
 def search_actors():
@@ -108,7 +110,8 @@ def search_actors():
     r = requests.post(REQUEST_ADDRESS + "/actors/search", json=search)
     data = r.json()
 
-    return render_template('pages/search_actors.html', results=data, search_term=request.form.get('search_term', ''))
+    return render_template('pages/search_actors.html', results=data, search_term=request.form.get('search_term', ''), \
+        token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/actors/<int:actor_id>/edit', methods=['GET'])
 def edit_actor(actor_id):
@@ -118,7 +121,7 @@ def edit_actor(actor_id):
 
     form.gender.default = data['actor']['gender']
     form.process()
-    return render_template('forms/edit_actor.html', form=form, actor=data['actor'])
+    return render_template('forms/edit_actor.html', form=form, actor=data['actor'], token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/actors/<int:actor_id>/edit', methods=['POST'])
 def edit_actor_submission(actor_id):
@@ -137,7 +140,8 @@ def edit_actor_submission(actor_id):
             "image_link": image_link, "imdb_link": imdb_link,
             "seeking_roles": seeking_roles, "seeking_description": seeking_description
         }
-        r = requests.patch(REQUEST_ADDRESS + "/actors/" + str(actor_id), json=actor)
+        head = {'Authorization': 'Bearer ' + session['token']}
+        r = requests.patch(REQUEST_ADDRESS + "/actors/" + str(actor_id), json=actor, headers=head)
         data = r.json()
         if not data['success']:
             error = True
@@ -154,12 +158,12 @@ def movies():
     r = requests.get(REQUEST_ADDRESS + "/movies")
     data = r.json()
 
-    return render_template('pages/movies.html', movies=data['movies'])
+    return render_template('pages/movies.html', movies=data['movies'], token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/movies/create', methods=['GET'])
 def create_movie_form():
     form = MovieForm()
-    return render_template('forms/new_movie.html', form=form)
+    return render_template('forms/new_movie.html', form=form, token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/movies/create', methods=['POST'])
 def create_movie_form_submission():
@@ -177,7 +181,8 @@ def create_movie_form_submission():
             "imdb_link": movie_imdb_link, "release_date": movie_release_date,
             "seeking_roles": movie_seeking_talent, "seeking_description": movie_seeking_description
         }
-        r = requests.post(REQUEST_ADDRESS + "/movies", json=movie)
+        head = {'Authorization': 'Bearer ' + session['token']}
+        r = requests.post(REQUEST_ADDRESS + "/movies", json=movie, headers=head)
         data = r.json()
         if not data['success']:
             error = True
@@ -185,10 +190,10 @@ def create_movie_form_submission():
         error = True
         flash('An error occurred. Movie could not be listed.')
     if error:
-        return render_template('forms/new_movie.html', form=form)
+        return render_template('forms/new_movie.html', form=form, token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
     else:
         flash('Movie was successfully listed!')
-        return render_template('pages/home.html')
+        return render_template('pages/home.html', token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/movies/<int:movie_id>')
 def show_movie(movie_id):
@@ -197,7 +202,8 @@ def show_movie(movie_id):
     r2 = requests.get(REQUEST_ADDRESS + "/castlist/movies/" + str(movie_id))
     actor = r2.json()
 
-    return render_template('pages/show_movie.html', movie=data['movie'], count=actor['count'], actors=actor['actors'])
+    return render_template('pages/show_movie.html', movie=data['movie'], count=actor['count'], actors=actor['actors'], \
+        token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 
 @app.route('/movies/search', methods=['POST'])
@@ -207,7 +213,8 @@ def search_movies():
     data = r.json()
     print(data)
 
-    return render_template('pages/search_movies.html', results=data, search_term=request.form.get('search_term', ''))
+    return render_template('pages/search_movies.html', results=data, search_term=request.form.get('search_term', ''), \
+        token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/movies/<int:movie_id>/edit', methods=['GET'])
 def edit_movie(movie_id):
@@ -215,7 +222,7 @@ def edit_movie(movie_id):
     r = requests.get(REQUEST_ADDRESS + "/movies/" + str(movie_id))
     data = r.json()
     
-    return render_template('forms/edit_movie.html', form=form, movie=data['movie'])
+    return render_template('forms/edit_movie.html', form=form, movie=data['movie'], token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 @app.route('/movies/<int:movie_id>/edit', methods=['POST'])
 def edit_movie_submission(movie_id):
@@ -233,7 +240,8 @@ def edit_movie_submission(movie_id):
             "image_link": image_link, "imdb_link": imdb_link,
             "seeking_talent": seeking_talent, "seeking_description": seeking_description
         }
-        r = requests.patch(REQUEST_ADDRESS + "/movies/" + str(movie_id), json=movie)
+        head = {'Authorization': 'Bearer ' + session['token']}
+        r = requests.patch(REQUEST_ADDRESS + "/movies/" + str(movie_id), json=movie, headers=head)
         data = r.json()
         if not data['success']:
             error = True
@@ -249,7 +257,7 @@ def edit_movie_submission(movie_id):
 def create_castlist():
   # renders form. do not touch.
   form = CastlistForm()
-  return render_template('forms/update_castlist.html', form=form)
+  return render_template('forms/update_castlist.html', form=form, token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 
 @app.route('/castlist/update', methods=['POST'])
@@ -264,7 +272,8 @@ def create_castlist_submission():
     castlist = {
             "actor_id": actor_id, "movie_id": movie_id
     }
-    r = requests.post(REQUEST_ADDRESS + "/castlist", json=castlist)
+    head = {'Authorization': 'Bearer ' + session['token']}
+    r = requests.post(REQUEST_ADDRESS + "/castlist", json=castlist, headers=head)
     data = r.json()
     if not data['success']:
         error = True
@@ -272,11 +281,11 @@ def create_castlist_submission():
     error = True
   if error:
     flash('An error occurred. Actor could not be cast.')
-    return render_template('forms/update_castlist.html', form=form)
+    return render_template('forms/update_castlist.html', form=form, token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
   else:
     # on successful db insert, flash success
     flash('Actor was successfully cast!')
-    return render_template('pages/home.html')
+    return render_template('pages/home.html', token = session.get('token'), login=LOGIN_LINK, logout=LOGOUT_LINK)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=8080)

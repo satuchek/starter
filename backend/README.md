@@ -29,16 +29,18 @@ The application is run on `http://127.0.0.1:5000/` by default and is a proxy in 
 From the frontend folder, run the following commands to start the client: 
 ```
 npm install // only once to install dependencies
-npm start 
+pip install -r requirements.txt // install required python dependencies
+source env/Scripts/activate // activate env
+python app.py // to start the app
 ```
 
-By default, the frontend will run on localhost:3000. 
+By default, the frontend will run on localhost:8080. 
 
 ### Tests
 In order to run tests navigate to the backend folder and run the following commands: 
 
 ```
-python test_flaskr.py
+python test_api.py
 ```
 
 All tests are kept in that file and should be maintained as updates are made to app functionality. 
@@ -47,7 +49,7 @@ All tests are kept in that file and should be maintained as updates are made to 
 
 ### Getting Started
 - Base URL: At present this app can only be run locally and is not hosted as a base URL. The backend app is hosted at the default, `http://127.0.0.1:5000/`, which is set as a proxy in the frontend configuration. 
-- Authentication: This version of the application does not require authentication or API keys. 
+- Authentication: This version of the application requires permissions to access certain endpoints. Authentication is provided via Auth0 and there are two roles: Casting Director and Executive producer. Without permissions users can interact with all information in the app in a read-only state. Casting directors can add, edit, and delete actors as well as cast them in movies. Executive Producers can do everything Casting Directors can but can also add, edit, and delete movies as well as remove actors from castlists.
 
 ### Error Handling
 Errors are returned as JSON objects in the following format:
@@ -60,6 +62,8 @@ Errors are returned as JSON objects in the following format:
 ```
 The API will return four error types when requests fail:
 - 400: Bad Request
+- 401: Invalid authorization header
+- 403: Not permitted access
 - 404: Resource Not Found
 - 405: Method not allowed
 - 422: Not Processable 
@@ -83,7 +87,7 @@ The API will return four error types when requests fail:
 #### GET /actors/<int:actor_id>
 - General:
     - Fetches details for a specific actor and a success code.
-    - Request Args: None
+    - Request Args: actor_id - integer
 - `curl http://127.0.0.1:5000/actors/1`
 ```
 {
@@ -100,11 +104,76 @@ The API will return four error types when requests fail:
   "success": true
 }
 ```
+
+### POST /actors/search
+- General:
+    - Sends a post request in order to get actors matching a specific search term. It returns an array of the short version of each actor as well as a count of matching actors.
+    - Request Args: None
+- Sample:
+    - `curl http://127.0.0.1:5000/actors/search -X POST -H "Content-Type: application/json" -d '{'search_term': 'Ryan'}'`
+```
+{
+  "actors": [
+    {
+      "id": 1,
+      "name": "Ryan Reynolds"
+    }
+  ],
+  "count": 1,
+  "success": true
+}
+```
+
+### POST /actors
+- General:
+    - Sends a post request in order to add a new actor to the database. If successful it will return the ID of the newly added actor.
+    - Request Args: None
+    - Authorization: requires token with the permission `post:actors`
+- Sample:
+    - `curl http://127.0.0.1:5000/actors -X POST -H "Content-Type: application/json" -H "Authorization: Bearer [token]" -d '{'name': 'Hugh Jackman', 'age': 53, 'image_link': 'url-for-image', 'imdb_link': 'url-for-imdb', 'gender': 'Male', 'seeking_roles': False, 'seeking_description': 'optional string description'}'`
+```
+{
+  "id": 2,
+  "success": true
+}
+```
+
+### PATCH /actors/<int:actor_id>
+- General:
+    - Sends a patch request in order to update an actor with an associated ID in the database. All parameters are optional. If successful will return success and the short version of the actor.
+    - Request Args: actor_id - integer
+    - Authorization: requires token with the permission `patch:actors`
+- Sample:
+    - `curl http://127.0.0.1:5000/actors -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer [token]" -d '{'name': 'Hugh Jackman', 'age': 54, 'image_link': 'url-for-image', 'imdb_link': 'url-for-imdb', 'gender': 'Male', 'seeking_roles': False, 'seeking_description': 'optional string description'}'`
+```
+{
+  "actor": {
+    'name': 'Hugh Jackman',
+    'id': 2
+  },
+  "success": true
+}
+```
+
+### DELETE /actors/<int:actor_id>
+- General:
+    - Sends a delete request in order to delete an actor with an associated ID in the database. If successful will return success and the ID of the deleted actor.
+    - Request Args: actor_id - integer
+    - Authorization: requires token with the permission `delete:actors`
+- Sample:
+    - `curl http://127.0.0.1:5000/actors -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer [token]"`
+```
+{
+  "id": 2,
+  "success": true
+}
+```
+
 #### GET /movies
 - General:
     - Returns an array of movies in the database and a success message. 
     - Request Args: None
-- Sample: `curl http://127.0.0.1:5000/categories/1/questions`
+- Sample: `curl http://127.0.0.1:5000/movies`
 
 ``` 
 {
@@ -119,75 +188,7 @@ The API will return four error types when requests fail:
 }
 ```
 
-#### DELETE /questions/{question_id}
-- General:
-    - Deletes the question of the given ID if it exists. Returns appropriate HTTP status code and the ID of the question deleted.
-    - Request Args: question id - integer
-- `curl -X DELETE http://127.0.0.1:5000/questions/21`
-```
-{
-  "success": true,
-  "id": 21
-}
-```
-#### POST /quizzes
-- General:
-    - Sends a post request in order to get the next quiz question.
-    - Request Args: None 
-- `curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"previous_questions": [20], "quiz_category": {"type": "Science", "id": "1"}}'`
-```
-{
-  "question":
-    {
-      "id": "Hematology is a branch of medicine involving the study of what?",
-      "question": 22,
-      "answer": "Blood",
-      "difficulty": 4,
-      "category": "1"
-    },
-  "success": true,
-}
-```
 
-#### POST /questions
-- General:
-    - Sends a post request in order to add a new question.
-    - Request Args: None 
-- `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"question": "This is a new question", "answer": "This is a new answer", "difficulty": 1, "category", 1}'`
-```
-{
-  "success": true,
-}
-```
-
-#### POST /questions
-- General:
-    - Sends a post request in order to search for a list of questions matching a term.
-    - Request Args: None 
-- `curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"searchTerm": "aut"}'`
-```
-{
-   "questions": [
-    {
-      "answer": "Tom Cruise",
-      "category": 5,
-      "difficulty": 4,
-      "id": 4,
-      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
-    },
-    {
-      "answer": "Maya Angelou",
-      "category": 4,
-      "difficulty": 2,
-      "id": 5,
-      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
-    }
-  ],
-  "totalQuestions": 2,
-  "currentCategory": "",
-  "success": true
-}
-```
 
 
 
