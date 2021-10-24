@@ -6,6 +6,8 @@ __pycache__/
 # C extensions
 *.so
 
+*.sh
+
 # Distribution / packaging
 .Python
 build/
@@ -117,3 +119,5 @@ config.py
 # front end dependencies
 node_modules
 *.json
+
+
